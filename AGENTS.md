@@ -2,7 +2,7 @@
 
 ## Repository Purpose
 
-"Determines environment and target refs for check workflows."
+Determines environment and target refs for check workflows.
 
 This repository contains a single composite GitHub Action previously bundled
 within [Framework-R-D/phlex](https://github.com/Framework-R-D/phlex) and
@@ -10,10 +10,28 @@ extracted for standalone reuse.
 
 ## Action Interface
 
-**Inputs:** (table: Name | Description | Required | Default)
-  ref:
-**Outputs:** (table: Name | Description)
-  is_act:
+**Inputs:**
+
+| Name | Description | Required | Default |
+| ---- | ----------- | -------- | ------- |
+| `ref` | Manual ref override | False |  |
+| `repo` | Manual repo override | False |  |
+| `pr-base-sha` | Manual base SHA override | False |  |
+| `checkout-path` | Manual checkout path override | False |  |
+| `build-path` | Manual build path override | False |  |
+
+**Outputs:**
+
+| Name | Description |
+| ---- | ----------- |
+| `is_act` | Whether running in act |
+| `ref` | The resolved ref |
+| `repo` | The resolved repository |
+| `base_sha` | The resolved base SHA for diffing |
+| `pr_number` | The PR number if available |
+| `checkout_path` | The resolved checkout path |
+| `build_path` | The resolved build path |
+
 ## Repository Structure
 
 | Path | Purpose |
@@ -27,19 +45,26 @@ extracted for standalone reuse.
 | `.github/workflows/ci.yaml` | CI: actionlint, YAML, Markdown, CodeQL |
 | `.github/dependabot.yml` | Weekly dependency updates |
 
+
 ## Development Workflow
 
 - All changes via pull request to `main`.
-- CI runs on every PR: actionlint, YAML lint, Markdown lint, CodeQL (actions language). For generate-build-matrix: additionally ruff, mypy, and pytest.
-- Use prek run (or pre-commit run) before pushing to catch formatting issues locally.
-- Dependabot opens weekly PRs for action pin updates. They are **not** auto-merged (no auto-merge workflow is configured); review and merge them manually, or configure branch protection + an auto-merge workflow as a follow-on.
+- CI runs on every PR: actionlint, YAML lint, Markdown lint, CodeQL (`actions`
+  language).
+- Use `prek run` (or `pre-commit run`) before pushing to catch formatting issues
+  locally.
+- Dependabot opens weekly PRs for action pin updates. They are **not** auto-merged
+  (no auto-merge workflow is configured); review and merge them manually, or
+  configure branch protection + an auto-merge workflow as a follow-on.
 
 ## Coding Standards
 
-- `action.yaml`: all `uses:` references must be SHA-pinned with a `# vN` comment. Version-tag pins (e.g. `@v4`) are not acceptable.
+- `action.yaml`: all `uses:` references must be SHA-pinned with a `# vN` comment.
+  Version-tag pins (e.g. `@v4`) are not acceptable.
 - YAML: formatted with prettier (120-char soft limit, 2-space indent).
 - Markdown: must pass markdownlint with the rules in `.markdownlint.jsonc`.
-- Python (generate-build-matrix only): ruff + mypy clean; Google-style docstrings; type hints required; tests in `tests/` with pytest.
+- Python (generate-build-matrix only): ruff + mypy clean; Google-style docstrings;
+  type hints required; tests in `tests/` with pytest.
 
 ## Release Procedure
 
@@ -48,8 +73,20 @@ See `RELEASES.md` for the complete step-by-step checklist.
 ## Phlex Ecosystem Context
 
 This action is part of the `Framework-R-D` action ecosystem supporting the
-[Phlex framework](https://github.com/Framework-R-D/phlex). When releasing a new version, check whether dependent actions (those that `uses:` this action in their own `action.yaml`) also need updating. The dependency graph is:
+[Phlex framework](https://github.com/Framework-R-D/phlex). When releasing a new
+version, check whether dependent actions (those that `uses:` this action in their
+own `action.yaml`) also need updating. The dependency graph is:
 
-  Level 0 (no internal deps): detect-act-env, detect-relevant-changes, get-pr-info, setup-build-env, configure-cmake, build-cmake, collect-format-results, complete-pr-comment, generate-build-matrix, post-clang-tidy-results, handle-fix-commit
-  Level 1 (depend on Level 0): prepare-check-outputs, prepare-fix-outputs, run-change-detection
-  Level 2 (depends on Level 1): workflow-setup
+- Level 0 (no internal deps): detect-act-env, detect-relevant-changes, get-pr-info,
+  setup-build-env, configure-cmake, build-cmake, collect-format-results,
+  complete-pr-comment, generate-build-matrix, post-clang-tidy-results, handle-fix-commit
+- Level 1 (depend on Level 0): prepare-check-outputs, prepare-fix-outputs,
+  run-change-detection
+- Level 2 (depends on Level 1): workflow-setup
+
+## CI Coverage Note
+
+actionlint scans `.github/workflows/*.y{a,}ml` only; it does **not** lint
+`action.yaml` (a composite action definition, not a workflow). Coverage of
+`action.yaml` correctness comes from the CodeQL `actions` analysis, which does
+inspect composite action definitions.
