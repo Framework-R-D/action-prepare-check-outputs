@@ -14,11 +14,11 @@ extracted for standalone reuse.
 
 | Name | Description | Required | Default |
 | ---- | ----------- | -------- | ------- |
-| `ref` | Manual ref override | False |  |
-| `repo` | Manual repo override | False |  |
-| `pr-base-sha` | Manual base SHA override | False |  |
-| `checkout-path` | Manual checkout path override | False |  |
-| `build-path` | Manual build path override | False |  |
+| `ref` | Manual ref override | False | |
+| `repo` | Manual repo override | False | |
+| `pr-base-sha` | Manual base SHA override | False | |
+| `checkout-path` | Manual checkout path override | False | |
+| `build-path` | Manual build path override | False | |
 
 **Outputs:**
 
