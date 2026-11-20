@@ -106,6 +106,27 @@ class ResolveTargetTests(unittest.TestCase):
                 self.inputs | {"INPUT_CHECKOUT_PATH": "escape/source"}, self.payload, self.lookup
             )
 
+    def test_symlink_aliases_cannot_make_checkout_and_build_overlap(self) -> None:
+        """Compare resolved containment while preserving workspace-relative outputs."""
+        source = self.root / "source"
+        source.mkdir()
+        (self.root / "alias").symlink_to(source, target_is_directory=True)
+        with self.assertRaisesRegex(ValueError, "must not overlap"):
+            resolve_target(
+                self.inputs | {"INPUT_CHECKOUT_PATH": "source", "INPUT_BUILD_PATH": "alias"},
+                self.payload,
+                self.lookup,
+            )
+
+        outputs = resolve_target(
+            self.inputs
+            | {"INPUT_CHECKOUT_PATH": "source-checkout", "INPUT_BUILD_PATH": "source-build"},
+            self.payload,
+            self.lookup,
+        )
+        self.assertEqual(outputs["checkout_path"], "source-checkout")
+        self.assertEqual(outputs["build_path"], "source-build")
+
     def test_cross_repository_snapshot_must_match_ref(self) -> None:
         """Explicit repository/ref/SHA overrides remain one validated tuple."""
         inputs = self.inputs | {

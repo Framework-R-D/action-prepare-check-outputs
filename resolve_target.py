@@ -181,7 +181,13 @@ def resolve_target(
     build = relative_path(
         inputs.get("INPUT_BUILD_PATH") or f"{name}-build", inputs["GITHUB_WORKSPACE"]
     )
-    if checkout == build or checkout.startswith(build + "/") or build.startswith(checkout + "/"):
+    resolved_checkout = (Path(inputs["GITHUB_WORKSPACE"]) / checkout).resolve()
+    resolved_build = (Path(inputs["GITHUB_WORKSPACE"]) / build).resolve()
+    if (
+        resolved_checkout == resolved_build
+        or resolved_checkout.is_relative_to(resolved_build)
+        or resolved_build.is_relative_to(resolved_checkout)
+    ):
         raise ValueError("Checkout and build paths must not overlap")
     return {
         "ref": ref,
