@@ -59,7 +59,9 @@ class GuardrailAlertTests(unittest.TestCase):
                 "import json, os, sys\n"
                 'with open(os.environ["CURL_ARGS"], "w") as stream:\n'
                 "    json.dump(sys.argv[1:], stream)\n"
-                'print("ok")\nprint(os.environ["HTTP_STATUS"])\n'
+                'print("ok")\n'
+                'if "--write-out" in sys.argv[1:]:\n'
+                '    print(os.environ["HTTP_STATUS"])\n'
                 'sys.exit(int(os.environ["CURL_EXIT"]))\n'
             )
             curl.chmod(0o755)
@@ -200,6 +202,9 @@ class GuardrailAlertTests(unittest.TestCase):
                 )
                 self.assertEqual(result.returncode == 0, status == "200")
                 self.assertIsNotNone(curl)
+                assert curl is not None
+                self.assertIn("--write-out", curl)
+                self.assertIn("--fail-with-body", curl)
 
     def test_payload_escapes_untrusted_values(self) -> None:
         """Messages and actor names stay data rather than executable shell input."""
